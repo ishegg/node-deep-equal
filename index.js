@@ -46,6 +46,13 @@ function objEquiv(a, b, opts) {
     return false;
   // an identical 'prototype' property.
   if (a.prototype !== b.prototype) return false;
+  // let the object handle it if it knows how (temporal fix)
+  if (a.equalsTo !== undefined) {
+    return a.equalsTo(b);
+  }
+  if (a.equals !== undefined) {
+    return a.equals(b);
+  }
   //~~~I've managed to break Object.keys through screwy arguments passing.
   //   Converting to array solves the problem.
   if (isArguments(a)) {
@@ -88,7 +95,11 @@ function objEquiv(a, b, opts) {
   //~~~possibly expensive deep test
   for (i = ka.length - 1; i >= 0; i--) {
     key = ka[i];
-    if (!deepEqual(a[key], b[key], opts)) return false;
+    if (a.equalsTo !== undefined) {
+      if (!a.equalsTo(b)) return false;
+    } else {
+      if (!deepEqual(a[key], b[key], opts)) return false;
+    }
   }
   return typeof a === typeof b;
 }
